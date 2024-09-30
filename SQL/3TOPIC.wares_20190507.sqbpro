@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/home/filimonqqq/SQL/wares_20190507.sqlite3" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1454"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,8:mainCATEGORY"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="CATEGORY" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort><column index="1" mode="1"/></sort><column_widths><column index="1" value="142"/><column index="2" value="93"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="MANUFACTURER" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="58"/><column index="2" value="300"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="MATERIAL" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="58"/><column index="2" value="142"/><column index="3" value="69"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="PRODUCT" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="58"/><column index="2" value="104"/><column index="3" value="69"/><column index="4" value="53"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="sqlite_sequence" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="45"/><column index="2" value="30"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 4-2">-- 4.2. 
+SELECT CLASS, WARE
+FROM CATEGORY
+GROUP BY CLASS</sql><sql name="SQL 2-7">--2.7. Get all the unique wares in alphabetical order that can be produced using nothing besides wares in
+-- Mineral category.
+
+SELECT DISTINCT prd.WARE FROM PRODUCT prd
+	INNER JOIN CATEGORY ON CATEGORY.CLASS == &quot;Mineral&quot;
+	INNER JOIN MATERIAL ON MATERIAL.BILL_ID = prd.BILL_ID AND MATERIAL.WARE = CATEGORY.WARE
+EXCEPT
+SELECT DISTINCT prd.WARE FROM PRODUCT prd
+	INNER JOIN CATEGORY ON CATEGORY.CLASS &lt;&gt; &quot;Mineral&quot;
+	INNER JOIN MATERIAL ON MATERIAL.BILL_ID = prd.BILL_ID AND MATERIAL.WARE = CATEGORY.WARE</sql><sql name="SQL 1">-- 3.1. Get all the unique wares in the alphabetic order with the minimal and maximal prices for each.
+SELECT DISTINCT 
+  PRODUCT.WARE, 
+  MAX(PRODUCT.PRICE), 
+  MIN(PRODUCT.PRICE)
+FROM PRODUCT
+GROUP BY PRODUCT.WARE
+ORDER BY PRODUCT.WARE</sql><sql name="SQL 2">-- 3.2. Show top 3 wares with the most difference between minimal and maximal prices.
+SELECT PRODUCT.WARE, MAX(PRODUCT.PRICE) - MIN(PRODUCT.PRICE)
+FROM PRODUCT
+GROUP BY PRODUCT.WARE
+ORDER BY MAX(PRODUCT.PRICE) - MIN(PRODUCT.PRICE) DESC
+LIMIT 3</sql><sql name="SQL 3">-- 3.3. Show top 3 companies producing the largest number of different products.
+SELECT DISTINCT COMPANY, COUNT(DISTINCT PRODUCT.WARE) the_largest_number
+FROM MANUFACTURER
+JOIN PRODUCT ON PRODUCT.BILL_ID = MANUFACTURER.BILL_ID
+GROUP BY COMPANY
+ORDER BY the_largest_number DESC
+LIMIT 3;
+
+</sql><sql name="SQL 4">-- 3.4. Show the price of the most expensive ware for each category. The result should be ordered by the category.
+SELECT CATEGORY.CLASS, MAX(PRODUCT.PRICE) 
+FROM PRODUCT
+JOIN CATEGORY ON PRODUCT.WARE = CATEGORY.WARE
+GROUP BY CATEGORY.CLASS
+ORDER BY CATEGORY.CLASS;
+</sql><sql name="SQL 5">-- 3.5. For each bill of materials show the company and lists of all the products and materials. The result must
+-- contain exactly one row per bill and sorted by company. Lists in the result must be represented as strings
+-- with values separated with comma.
+
+SELECT PRODUCT.BILL_ID, GROUP_CONCAT(DISTINCT MATERIAL.WARE) AS MATERIALS, COMPANY, GROUP_CONCAT(DISTINCT PRODUCT.WARE) AS PRODUCTS
+FROM PRODUCT
+  LEFT JOIN MATERIAL USING(BILL_ID)
+  JOIN MANUFACTURER USING(BILL_ID)
+GROUP BY PRODUCT.BILL_ID
+ORDER BY COMPANY;
+
+</sql><sql name="SQL 6">-- 3.6. Show the companies in the alphabetical order that producing larger number of different wares than consuming.
+
+SELECT COMPANY, COUNT(DISTINCT PRODUCT.WARE), COUNT(DISTINCT MATERIAL.WARE)
+FROM 
+	PRODUCT
+	LEFT JOIN MATERIAL USING(BILL_ID)
+	JOIN MANUFACTURER USING(BILL_ID)
+GROUP BY COMPANY
+HAVING COUNT(DISTINCT PRODUCT.WARE) &gt; COUNT(DISTINCT MATERIAL.WARE)
+ORDER BY COMPANY;</sql><sql name="SQL 7">-- 3.7. Show all the companies that produce the same ware by more than 2 different ways (bills of materials).
+SELECT COMPANY
+FROM 
+	PRODUCT
+	JOIN MANUFACTURER USING(BILL_ID)
+GROUP BY COMPANY, PRODUCT.WARE
+HAVING COUNT(DISTINCT PRODUCT.BILL_ID) &gt; 2
+ORDER BY COMPANY;</sql><current_tab id="8"/></tab_sql></sqlb_project>
